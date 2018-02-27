@@ -20,6 +20,7 @@ import static org.apache.commons.lang.RandomStringUtils.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+import org.apache.logging.log4j.core.util.ReflectionUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;

@@ -15,26 +15,19 @@
  */
 package org.springframework.data.elasticsearch.repositories.cdi;
 
+import org.elasticsearch.client.Client;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
-
-import org.elasticsearch.client.Client;
-import org.elasticsearch.node.NodeValidationException;
-import org.springframework.data.elasticsearch.Utils;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 
 /**
  * @author Mohsin Husen
  */
 @ApplicationScoped
 class ElasticsearchTemplateProducer {
-
-	@Produces
-	public Client createNodeClient() throws NodeValidationException {
-		return Utils.getNodeClient();
-	}
 
 	@Produces
 	public ElasticsearchOperations createElasticsearchTemplate(Client client) {

@@ -15,17 +15,18 @@
  */
 package org.springframework.data.elasticsearch.core.query;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.facet.FacetRequest;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * NativeSearchQuery
@@ -41,7 +42,6 @@ public class NativeSearchQueryBuilder {
 	private QueryBuilder filterBuilder;
     private List<ScriptField> scriptFields = new ArrayList<>();
 	private List<SortBuilder> sortBuilders = new ArrayList<>();
-	private List<FacetRequest> facetRequests = new ArrayList<>();
 	private List<AbstractAggregationBuilder> aggregationBuilders = new ArrayList<>();
 	private HighlightBuilder.Field[] highlightFields;
 	private Pageable pageable = Pageable.unpaged();
@@ -77,11 +77,6 @@ public class NativeSearchQueryBuilder {
 
 	public NativeSearchQueryBuilder addAggregation(AbstractAggregationBuilder aggregationBuilder) {
 		this.aggregationBuilders.add(aggregationBuilder);
-		return this;
-	}
-
-	public NativeSearchQueryBuilder withFacet(FacetRequest facetRequest) {
-		facetRequests.add(facetRequest);
 		return this;
 	}
 
@@ -167,10 +162,6 @@ public class NativeSearchQueryBuilder {
         if (!isEmpty(scriptFields)) {
             nativeSearchQuery.setScriptFields(scriptFields);
         }
-
-		if (!isEmpty(facetRequests)) {
-			nativeSearchQuery.setFacets(facetRequests);
-		}
 
 		if (!isEmpty(aggregationBuilders)) {
 			nativeSearchQuery.setAggregations(aggregationBuilders);

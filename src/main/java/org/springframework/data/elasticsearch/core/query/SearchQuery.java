@@ -21,7 +21,6 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.springframework.data.elasticsearch.core.facet.FacetRequest;
 
 /**
  * NativeSearchQuery
@@ -37,9 +36,6 @@ public interface SearchQuery extends Query {
 	QueryBuilder getFilter();
 
 	List<SortBuilder> getElasticsearchSorts();
-
-	@Deprecated
-	List<FacetRequest> getFacets();
 
 	List<AbstractAggregationBuilder> getAggregations();
 

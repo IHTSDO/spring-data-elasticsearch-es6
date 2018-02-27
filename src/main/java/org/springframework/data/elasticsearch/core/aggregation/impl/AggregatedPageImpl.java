@@ -15,22 +15,22 @@
  */
 package org.springframework.data.elasticsearch.core.aggregation.impl;
 
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.Aggregations;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.FacetedPageImpl;
-import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 
 /**
  * @author Petar Tahchiev
  * @author Artur Konczak
  * @author Mohsin Husen
  */
-public class AggregatedPageImpl<T> extends FacetedPageImpl<T> implements AggregatedPage<T> {
+public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage<T> {
 
 	private Aggregations aggregations;
 	private Map<String, Aggregation> mapOfAggregations = new HashMap<>();
