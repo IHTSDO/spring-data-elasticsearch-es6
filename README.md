@@ -1,3 +1,7 @@
+_Fork Notice_
+=============
+This is a fork of the _Spring Data Elasticsearch_ project so that SNOMED International can add up to date REST client support.
+
 Spring Data Elasticsearch
 =========================
 
