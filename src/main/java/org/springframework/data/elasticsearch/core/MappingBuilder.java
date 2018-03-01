@@ -67,7 +67,6 @@ class MappingBuilder {
 	public static final String COMPLETION_PRESERVE_POSITION_INCREMENTS = "preserve_position_increments";
 	public static final String COMPLETION_MAX_INPUT_LENGTH = "max_input_length";
 
-	public static final String INDEX_VALUE_NOT_ANALYZED = "not_analyzed";
 	public static final String TYPE_VALUE_STRING = "text";
 	public static final String TYPE_VALUE_GEO_POINT = "geo_point";
 	public static final String TYPE_VALUE_COMPLETION = "completion";
@@ -216,7 +215,6 @@ class MappingBuilder {
 			throws IOException {
 		xContentBuilder.startObject(field.getName())
 				.field(FIELD_TYPE, TYPE_VALUE_STRING)
-				.field(FIELD_INDEX, INDEX_VALUE_NOT_ANALYZED);
 		xContentBuilder.endObject();
 	}
 
