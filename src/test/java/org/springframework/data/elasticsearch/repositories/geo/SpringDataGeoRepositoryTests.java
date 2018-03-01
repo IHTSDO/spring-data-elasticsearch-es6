@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.elasticsearch.entities.GeoEntity;
@@ -38,7 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/repository-spring-data-geo-support.xml")
-public class SpringDataGeoRepositoryTests {
+public class SpringDataGeoRepositoryTests extends AbstractIntegrationTest {
 
 	@Autowired ElasticsearchTemplate template;
 

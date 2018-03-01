@@ -18,7 +18,9 @@ package org.springframework.data.elasticsearch.config;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.elasticsearch.node.NodeValidationException;
 import org.junit.Test;
@@ -29,13 +31,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.Utils;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.entities.SampleEntity;
 import org.springframework.data.elasticsearch.repositories.sample.SampleElasticsearchRepository;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+import org.springframework.data.elasticsearch.rest.ElasticsearchRestClient;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,7 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class EnableElasticsearchRepositoriesTests implements ApplicationContextAware {
+public class EnableElasticsearchRepositoriesTests extends AbstractIntegrationTest implements ApplicationContextAware {
 
 	ApplicationContext context;
 
@@ -63,8 +66,9 @@ public class EnableElasticsearchRepositoriesTests implements ApplicationContextA
 	static class Config {
 
 		@Bean
-		public ElasticsearchOperations elasticsearchTemplate() throws NodeValidationException {
-			return new ElasticsearchTemplate(Utils.getNodeClient());
+		public ElasticsearchOperations elasticsearchTemplate() throws NodeValidationException, IOException, InterruptedException {
+			ElasticsearchRestClient client = new ElasticsearchRestClient(new HashMap<>(), "http://localhost:9931");
+			return new ElasticsearchTemplate(client);
 		}
 	}
 

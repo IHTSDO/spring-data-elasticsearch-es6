@@ -32,6 +32,7 @@ import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.entities.NonDocumentEntity;
@@ -54,7 +55,7 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class ElasticsearchTemplateCompletionTests {
+public class ElasticsearchTemplateCompletionTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ElasticsearchTemplate elasticsearchTemplate;

@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.entities.SampleEntity;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class CriteriaQueryTests {
+public class CriteriaQueryTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ElasticsearchTemplate elasticsearchTemplate;

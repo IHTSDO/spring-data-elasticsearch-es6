@@ -15,29 +15,33 @@
  */
 package org.springframework.data.elasticsearch.config;
 
-import static org.junit.Assert.*;
-
 import org.elasticsearch.node.NodeValidationException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.Utils;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.entities.SampleEntity;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+import org.springframework.data.elasticsearch.rest.ElasticsearchRestClient;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Kevin Leturc
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class EnableNestedElasticsearchRepositoriesTests {
+public class EnableNestedElasticsearchRepositoriesTests extends AbstractIntegrationTest {
 
 	@Configuration
 	@EnableElasticsearchRepositories(basePackages = {"org.springframework.data.elasticsearch.repositories.sample",
@@ -45,8 +49,9 @@ public class EnableNestedElasticsearchRepositoriesTests {
 	static class Config {
 
 		@Bean
-		public ElasticsearchOperations elasticsearchTemplate() throws NodeValidationException {
-			return new ElasticsearchTemplate(Utils.getNodeClient());
+		public ElasticsearchOperations elasticsearchTemplate() throws NodeValidationException, IOException, InterruptedException {
+			ElasticsearchRestClient client = new ElasticsearchRestClient(new HashMap<>(), "http://localhost:9931");
+			return new ElasticsearchTemplate(client);
 		}
 	}
 

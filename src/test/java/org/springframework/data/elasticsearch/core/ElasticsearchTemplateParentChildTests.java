@@ -31,9 +31,11 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -47,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class ElasticsearchTemplateParentChildTests {
+public class ElasticsearchTemplateParentChildTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ElasticsearchTemplate elasticsearchTemplate;
@@ -66,6 +68,7 @@ public class ElasticsearchTemplateParentChildTests {
 		elasticsearchTemplate.deleteIndex(ParentEntity.class);
 	}
 
+	@Ignore("Not required at this time.")
 	@Test
 	public void shouldIndexParentChildEntity() {
 		// index two parents
@@ -88,6 +91,7 @@ public class ElasticsearchTemplateParentChildTests {
 		assertThat("parents", parents, contains(hasProperty("id", is(parent1.getId()))));
 	}
 
+	@Ignore("Not required at this time.")
 	@Test
 	public void shouldUpdateChild() throws Exception {
 		// index parent and child
@@ -106,6 +110,7 @@ public class ElasticsearchTemplateParentChildTests {
 		assertThat(response.getShardInfo().getSuccessful(), is(1));
 	}
 
+	@Ignore("Not required at this time.")
 	@Test(expected = RoutingMissingException.class)
 	public void shouldFailWithRoutingMissingExceptionOnUpdateChildIfNotRoutingSetOnUpdateRequest() throws Exception {
 		// index parent and child
@@ -121,6 +126,7 @@ public class ElasticsearchTemplateParentChildTests {
 		update(updateRequest);
 	}
 
+	@Ignore("Not required at this time.")
 	@Test(expected = RoutingMissingException.class)
 	public void shouldFailWithRoutingMissingExceptionOnUpdateChildIfRoutingOnlySetOnRequestDoc() throws Exception {
 		// index parent and child

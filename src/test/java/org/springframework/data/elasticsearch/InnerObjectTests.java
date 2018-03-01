@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/repository-test-nested-object-books.xml")
-public class InnerObjectTests {
+public class InnerObjectTests extends AbstractIntegrationTest {
 
 	@Autowired private SampleElasticSearchBookRepository bookRepository;
 

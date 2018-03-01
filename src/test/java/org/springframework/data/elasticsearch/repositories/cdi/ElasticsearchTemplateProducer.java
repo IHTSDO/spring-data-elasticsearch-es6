@@ -18,6 +18,7 @@ package org.springframework.data.elasticsearch.repositories.cdi;
 import org.elasticsearch.client.Client;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.rest.ElasticsearchRestClient;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
@@ -30,14 +31,14 @@ import javax.enterprise.inject.Produces;
 class ElasticsearchTemplateProducer {
 
 	@Produces
-	public ElasticsearchOperations createElasticsearchTemplate(Client client) {
+	public ElasticsearchOperations createElasticsearchTemplate(ElasticsearchRestClient client) {
 		return new ElasticsearchTemplate(client);
 	}
 
 	@Produces
 	@OtherQualifier
 	@PersonDB
-	public ElasticsearchOperations createQualifiedElasticsearchTemplate(Client client) {
+	public ElasticsearchOperations createQualifiedElasticsearchTemplate(ElasticsearchRestClient client) {
 		return new ElasticsearchTemplate(client);
 	}
 

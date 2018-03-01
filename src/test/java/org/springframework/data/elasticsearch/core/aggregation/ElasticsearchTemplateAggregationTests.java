@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.ResultsExtractor;
 import org.springframework.data.elasticsearch.core.facet.ArticleEntity;
@@ -51,7 +52,7 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class ElasticsearchTemplateAggregationTests {
+public class ElasticsearchTemplateAggregationTests extends AbstractIntegrationTest {
 
 	public static final String RIZWAN_IDREES = "Rizwan Idrees";
 	public static final String MOHSIN_HUSEN = "Mohsin Husen";

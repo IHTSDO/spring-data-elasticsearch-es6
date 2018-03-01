@@ -22,10 +22,7 @@ import java.util.Optional;
 
 import org.apache.webbeans.cditest.CdiTestContainer;
 import org.apache.webbeans.cditest.CdiTestContainerLoader;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.data.elasticsearch.entities.Product;
 
 /**
@@ -33,6 +30,7 @@ import org.springframework.data.elasticsearch.entities.Product;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
+@Ignore("Not required")
 public class CdiRepositoryTests {
 
 	private static CdiTestContainer cdiContainer;

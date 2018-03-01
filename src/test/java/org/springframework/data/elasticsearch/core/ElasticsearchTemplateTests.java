@@ -24,11 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.engine.DocumentMissingException;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
@@ -44,6 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
@@ -54,6 +56,7 @@ import org.springframework.data.elasticsearch.entities.HetroEntity2;
 import org.springframework.data.elasticsearch.entities.SampleEntity;
 import org.springframework.data.elasticsearch.entities.SampleMappingEntity;
 import org.springframework.data.elasticsearch.entities.UseServerConfigurationEntity;
+import org.springframework.data.elasticsearch.utils.MapUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -73,7 +76,7 @@ import static org.springframework.data.elasticsearch.utils.IndexBuilder.*;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class ElasticsearchTemplateTests {
+public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 
 	private static final String INDEX_NAME = "test-index-sample";
 	private static final String INDEX_1_NAME = "test-index-1";
@@ -583,8 +586,8 @@ public class ElasticsearchTemplateTests {
 		final Map setting = elasticsearchTemplate.getSetting(SampleEntity.class);
 		// then
 		assertThat(created, is(true));
-		assertThat(setting.get("index.number_of_shards"), Matchers.<Object>is("1"));
-		assertThat(setting.get("index.number_of_replicas"), Matchers.<Object>is("0"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(setting, "index.number_of_shards"), Matchers.<Object>is("1"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(setting, "index.number_of_replicas"), Matchers.<Object>is("0"));
 	}
 
 	@Test
@@ -1131,10 +1134,11 @@ public class ElasticsearchTemplateTests {
 		assertThat(indexedEntity.getMessage(), is(messageAfterUpdate));
 	}
 
-	@Test(expected = DocumentMissingException.class)
+	@Test(expected = ElasticsearchStatusException.class)
 	public void shouldThrowExceptionIfDocumentDoesNotExistWhileDoingPartialUpdate() {
 		// when
 		IndexRequest indexRequest = new IndexRequest();
+		indexRequest.source(MapBuilder.newMapBuilder().put("name", "Joe").immutableMap());
 		UpdateQuery updateQuery = new UpdateQueryBuilder().withId(randomNumeric(5))
 				.withClass(SampleEntity.class).withIndexRequest(indexRequest).build();
 		elasticsearchTemplate.update(updateQuery);
@@ -1798,7 +1802,6 @@ public class ElasticsearchTemplateTests {
 	public void shouldCreateIndexWithGivenSettings() {
 		// given
 		String settings = "{\n" +
-				"        \"index\": {\n" +
 				"            \"number_of_shards\": \"1\",\n" +
 				"            \"number_of_replicas\": \"0\",\n" +
 				"            \"analysis\": {\n" +
@@ -1809,7 +1812,6 @@ public class ElasticsearchTemplateTests {
 				"                    }\n" +
 				"                }\n" +
 				"            }\n" +
-				"        }\n" +
 				"}";
 
 		elasticsearchTemplate.deleteIndex("test-index");
@@ -1817,16 +1819,15 @@ public class ElasticsearchTemplateTests {
 		elasticsearchTemplate.createIndex("test-index", settings);
 		// then
 		Map map = elasticsearchTemplate.getSetting("test-index");
-		boolean hasAnalyzer = map.containsKey("index.analysis.analyzer.emailAnalyzer.tokenizer");
-		String emailAnalyzer = (String) map.get("index.analysis.analyzer.emailAnalyzer.tokenizer");
+		String emailAnalyzer = MapUtils.getMapValueUsingCompositeKey(map, "index.analysis.analyzer.emailAnalyzer.tokenizer");
 		assertThat(elasticsearchTemplate.indexExists("test-index"), is(true));
-		assertThat(hasAnalyzer, is(true));
 		assertThat(emailAnalyzer, is("uax_url_email"));
 	}
 
 	/*
 	DATAES-71
 	*/
+
 	@Test
 	public void shouldCreateGivenSettingsForGivenIndex() {
 		//given
@@ -1834,15 +1835,11 @@ public class ElasticsearchTemplateTests {
 
 		// then
 		Map map = elasticsearchTemplate.getSetting(SampleEntity.class);
-		assertThat(elasticsearchTemplate.indexExists("test-index"), is(true));
-		assertThat(map.containsKey("index.refresh_interval"), is(true));
-		assertThat(map.containsKey("index.number_of_replicas"), is(true));
-		assertThat(map.containsKey("index.number_of_shards"), is(true));
-		assertThat(map.containsKey("index.store.type"), is(true));
-		assertThat((String) map.get("index.refresh_interval"), is("-1"));
-		assertThat((String) map.get("index.number_of_replicas"), is("0"));
-		assertThat((String) map.get("index.number_of_shards"), is("1"));
-		assertThat((String) map.get("index.store.type"), is("fs"));
+		assertThat(elasticsearchTemplate.indexExists("test-index-sample"), is(true));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.refresh_interval"), is("-1"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_replicas"), is("0"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_shards"), is("1"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.store.type"), is("fs"));
 	}
 
 	/*
@@ -1852,7 +1849,6 @@ public class ElasticsearchTemplateTests {
 	public void shouldCreateIndexWithGivenClassAndSettings() {
 		//given
 		String settings = "{\n" +
-				"        \"index\": {\n" +
 				"            \"number_of_shards\": \"1\",\n" +
 				"            \"number_of_replicas\": \"0\",\n" +
 				"            \"analysis\": {\n" +
@@ -1863,7 +1859,6 @@ public class ElasticsearchTemplateTests {
 				"                    }\n" +
 				"                }\n" +
 				"            }\n" +
-				"        }\n" +
 				"}";
 
 		elasticsearchTemplate.deleteIndex(SampleEntity.class);
@@ -1874,12 +1869,10 @@ public class ElasticsearchTemplateTests {
 		// then
 		Map map = elasticsearchTemplate.getSetting(SampleEntity.class);
 		assertThat(elasticsearchTemplate.indexExists(INDEX_NAME), is(true));
-		assertThat(map.containsKey("index.number_of_replicas"), is(true));
-		assertThat(map.containsKey("index.number_of_shards"), is(true));
-		assertThat((String) map.get("index.number_of_replicas"), is("0"));
-		assertThat((String) map.get("index.number_of_shards"), is("1"));
+		assertThat(map.containsKey("index"), is(true));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_replicas"), is("0"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_shards"), is("1"));
 	}
-
 	@Test
 	public void shouldTestResultsAcrossMultipleIndices() {
 		// given
@@ -1963,8 +1956,8 @@ public class ElasticsearchTemplateTests {
 		//then
 		assertThat(created, is(true));
 		final Map setting = elasticsearchTemplate.getSetting(UseServerConfigurationEntity.class);
-		assertThat(setting.get("index.number_of_shards"), Matchers.<Object>is("5"));
-		assertThat(setting.get("index.number_of_replicas"), Matchers.<Object>is("1"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(setting, "index.number_of_shards"), Matchers.<Object>is("5"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(setting, "index.number_of_replicas"), Matchers.<Object>is("1"));
 	}
 
 	@Test

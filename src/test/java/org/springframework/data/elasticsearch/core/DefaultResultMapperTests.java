@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -69,9 +70,7 @@ public class DefaultResultMapperTests {
 	public void shouldMapAggregationsToPage() {
 		//Given
 		SearchHit[] hits = {createCarHit("Ford", "Grat"), createCarHit("BMW", "Arrow")};
-		SearchHits searchHits = mock(SearchHits.class);
-		when(searchHits.getTotalHits()).thenReturn(2L);
-		when(searchHits.iterator()).thenReturn(new ArrayIterator(hits));
+		SearchHits searchHits = new SearchHits(hits, 2, 1);
 		when(response.getHits()).thenReturn(searchHits);
 
 		Aggregations aggregations = new Aggregations(asList(createCarAggregation()));
@@ -89,9 +88,7 @@ public class DefaultResultMapperTests {
 	public void shouldMapSearchRequestToPage() {
 		//Given
 		SearchHit[] hits = {createCarHit("Ford", "Grat"), createCarHit("BMW", "Arrow")};
-		SearchHits searchHits = mock(SearchHits.class);
-		when(searchHits.getTotalHits()).thenReturn(2L);
-		when(searchHits.iterator()).thenReturn(new ArrayIterator(hits));
+		SearchHits searchHits = new SearchHits(hits, 2, 1);
 		when(response.getHits()).thenReturn(searchHits);
 
 		//When
@@ -107,9 +104,7 @@ public class DefaultResultMapperTests {
 	public void shouldMapPartialSearchRequestToObject() {
 		//Given
 		SearchHit[] hits = {createCarPartialHit("Ford", "Grat"), createCarPartialHit("BMW", "Arrow")};
-		SearchHits searchHits = mock(SearchHits.class);
-		when(searchHits.getTotalHits()).thenReturn(2L);
-		when(searchHits.iterator()).thenReturn(new ArrayIterator(hits));
+		SearchHits searchHits = new SearchHits(hits, 2, 1);
 		when(response.getHits()).thenReturn(searchHits);
 
 		//When
@@ -159,16 +154,13 @@ public class DefaultResultMapperTests {
 	}
 
 	private SearchHit createCarHit(String name, String model) {
-		SearchHit hit = mock(SearchHit.class);
-		when(hit.getSourceAsString()).thenReturn(createJsonCar(name, model));
-		return hit;
+		return new SearchHit(123).sourceRef(new BytesArray(createJsonCar(name, model)));
 	}
 
 	private SearchHit createCarPartialHit(String name, String model) {
-		SearchHit hit = mock(SearchHit.class);
-		when(hit.getSourceAsString()).thenReturn(null);
-		when(hit.getFields()).thenReturn(createCarFields(name, model));
-		return hit;
+		SearchHit searchHit = new SearchHit(123);
+		searchHit.fields(createCarFields(name, model));
+		return searchHit;
 	}
 
 	private String createJsonCar(String name, String model) {

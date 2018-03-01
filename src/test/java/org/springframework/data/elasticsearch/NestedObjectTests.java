@@ -57,7 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/repository-test-nested-object.xml")
-public class NestedObjectTests {
+public class NestedObjectTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ElasticsearchTemplate elasticsearchTemplate;

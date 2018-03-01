@@ -25,11 +25,13 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.facet.LogEntity;
 import org.springframework.data.elasticsearch.core.facet.LogEntityBuilder;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -46,7 +48,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class LogEntityTests {
+public class LogEntityTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ElasticsearchTemplate template;
@@ -92,7 +94,7 @@ public class LogEntityTests {
 	/*
 	DATAES-66
 	*/
-	@Test(expected = SearchPhaseExecutionException.class)
+	@Test(expected = ElasticsearchStatusException.class)
 	public void shouldThrowExceptionWhenInvalidIPGivenForSearchQuery() {
 		//when
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()

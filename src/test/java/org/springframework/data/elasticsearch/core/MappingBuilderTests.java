@@ -30,6 +30,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.builder.SampleInheritedEntityBuilder;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
@@ -46,7 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:elasticsearch-template-test.xml")
-public class MappingBuilderTests {
+public class MappingBuilderTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ElasticsearchTemplate elasticsearchTemplate;
@@ -101,7 +102,7 @@ public class MappingBuilderTests {
 		assertThat(result.size(), is(1));
 		StockPrice entry = result.get(0);
 		assertThat(entry.getSymbol(), is(symbol));
-		assertThat(entry.getPrice(), is(new BigDecimal(price)));
+		assertThat(entry.getPrice().toString(), is("2.34"));
 	}
 
 	@Test

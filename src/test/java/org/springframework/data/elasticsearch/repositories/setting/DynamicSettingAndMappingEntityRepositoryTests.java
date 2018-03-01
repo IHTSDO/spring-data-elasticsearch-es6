@@ -24,13 +24,16 @@ import java.util.Map;
 import org.apache.commons.lang.RandomStringUtils;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.data.elasticsearch.entities.DynamicSettingAndMappingEntity;
+import org.springframework.data.elasticsearch.utils.MapUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:dynamic-settings-test.xml")
-public class DynamicSettingAndMappingEntityRepositoryTests {
+public class DynamicSettingAndMappingEntityRepositoryTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private DynamicSettingAndMappingEntityRepository repository;
@@ -68,12 +71,9 @@ public class DynamicSettingAndMappingEntityRepositoryTests {
 		// then
 		assertThat(elasticsearchTemplate.indexExists(DynamicSettingAndMappingEntity.class), is(true));
 		Map map = elasticsearchTemplate.getSetting(DynamicSettingAndMappingEntity.class);
-		assertThat(map.containsKey("index.number_of_replicas"), is(true));
-		assertThat(map.containsKey("index.number_of_shards"), is(true));
-		assertThat(map.containsKey("index.analysis.analyzer.emailAnalyzer.tokenizer"), is(true));
-		assertThat((String) map.get("index.number_of_replicas"), is("0"));
-		assertThat((String) map.get("index.number_of_shards"), is("1"));
-		assertThat((String) map.get("index.analysis.analyzer.emailAnalyzer.tokenizer"), is("uax_url_email"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_replicas"), is("0"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_shards"), is("1"));
+		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.analysis.analyzer.emailAnalyzer.tokenizer"), is("uax_url_email"));
 	}
 
 	/*
@@ -134,7 +134,7 @@ public class DynamicSettingAndMappingEntityRepositoryTests {
 		String mappings = "{\n" +
 				"    \"test-setting-type\" : {\n" +
 				"        \"properties\" : {\n" +
-				"            \"email\" : {\"type\" : \"string\", \"analyzer\" : \"emailAnalyzer\" }\n" +
+				"            \"email\" : {\"type\" : \"text\", \"analyzer\" : \"emailAnalyzer\" }\n" +
 				"        }\n" +
 				"    }\n" +
 				"}";

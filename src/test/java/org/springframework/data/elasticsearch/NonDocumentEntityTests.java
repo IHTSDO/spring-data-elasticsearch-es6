@@ -24,7 +24,7 @@ import org.springframework.data.elasticsearch.repositories.nondocument.NonDocume
  * @author Rizwan Idrees
  * @author Mohsin Husen
  */
-public class NonDocumentEntityTests {
+public class NonDocumentEntityTests extends AbstractIntegrationTest {
 
 	@Test(expected = BeanCreationException.class)
 	public void shouldNotInitialiseRepositoryWithNonDocument() {

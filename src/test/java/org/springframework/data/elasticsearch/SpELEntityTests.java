@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:/spel-repository-test.xml")
-public class SpELEntityTests {
+public class SpELEntityTests extends AbstractIntegrationTest {
 
 	@Autowired private SpELRepository repository;
 

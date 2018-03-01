@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.entities.SampleEntity;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:complex-custom-method-repository-test.xml")
-public class ComplexCustomMethodRepositoryTests {
+public class ComplexCustomMethodRepositoryTests extends AbstractIntegrationTest {
 
 	@Autowired
 	private ComplexElasticsearchRepository complexRepository;
