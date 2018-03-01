@@ -15,6 +15,7 @@
  */
 package org.springframework.data.elasticsearch.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
@@ -36,6 +37,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Nullable;
@@ -75,6 +77,7 @@ import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersiste
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.data.elasticsearch.rest.ElasticsearchRestClient;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 
@@ -109,34 +112,35 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 public class ElasticsearchTemplate implements ElasticsearchOperations, ApplicationContextAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchTemplate.class);
-	private Client client;
+	private ElasticsearchRestClient client;
 	private ElasticsearchConverter elasticsearchConverter;
 	private ResultsMapper resultsMapper;
 	private String searchTimeout;
+	private ObjectMapper objectMapper;
 
-	public ElasticsearchTemplate(Client client) {
+	public ElasticsearchTemplate(ElasticsearchRestClient client) {
 		this(client, new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()));
 	}
 
-	public ElasticsearchTemplate(Client client, EntityMapper entityMapper) {
+	public ElasticsearchTemplate(ElasticsearchRestClient client, EntityMapper entityMapper) {
 		this(client, new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()), entityMapper);
 	}
 
-	public ElasticsearchTemplate(Client client, ElasticsearchConverter elasticsearchConverter,
+	public ElasticsearchTemplate(ElasticsearchRestClient client, ElasticsearchConverter elasticsearchConverter,
 			EntityMapper entityMapper) {
 		this(client, elasticsearchConverter,
 				new DefaultResultMapper(elasticsearchConverter.getMappingContext(), entityMapper));
 	}
 
-	public ElasticsearchTemplate(Client client, ResultsMapper resultsMapper) {
+	public ElasticsearchTemplate(ElasticsearchRestClient client, ResultsMapper resultsMapper) {
 		this(client, new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()), resultsMapper);
 	}
 
-	public ElasticsearchTemplate(Client client, ElasticsearchConverter elasticsearchConverter) {
+	public ElasticsearchTemplate(ElasticsearchRestClient client, ElasticsearchConverter elasticsearchConverter) {
 		this(client, elasticsearchConverter, new DefaultResultMapper(elasticsearchConverter.getMappingContext()));
 	}
 
-	public ElasticsearchTemplate(Client client, ElasticsearchConverter elasticsearchConverter,
+	public ElasticsearchTemplate(ElasticsearchRestClient client, ElasticsearchConverter elasticsearchConverter,
 			ResultsMapper resultsMapper) {
 
 		Assert.notNull(client, "Client must not be null!");
@@ -146,10 +150,11 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		this.client = client;
 		this.elasticsearchConverter = elasticsearchConverter;
 		this.resultsMapper = resultsMapper;
+		this.objectMapper = new ObjectMapper();
 	}
 
 	@Override
-	public Client getClient() {
+	public ElasticsearchRestClient getClient() {
 		return client;
 	}
 
@@ -175,7 +180,12 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 			if (isNotBlank(mappingPath)) {
 				String mappings = readFileFromClasspath(mappingPath);
 				if (isNotBlank(mappings)) {
-					return putMapping(clazz, mappings);
+					try {
+						Map mappingsMap = objectMapper.readValue(mappings, Map.class);
+						return putMapping(clazz, mappingsMap);
+					} catch (IOException e) {
+						logger.error("Failed to read mapping file.", e);
+					}
 				}
 			} else {
 				logger.info("mappingPath in @Mapping has to be defined. Building mappings using @Field");
@@ -207,7 +217,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		Assert.notNull(type, "No type defined for putMapping()");
 		PutMappingRequestBuilder requestBuilder = client.admin().indices().preparePutMapping(indexName).setType(type);
 		if (mapping instanceof String) {
-			requestBuilder.setSource(String.valueOf(mapping));
+			requestBuilder.setSource(String.valueOf(mapping), XContentType.JSON);
 		} else if (mapping instanceof Map) {
 			requestBuilder.setSource((Map) mapping);
 		} else if (mapping instanceof XContentBuilder) {
@@ -220,14 +230,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 	public Map getMapping(String indexName, String type) {
 		Assert.notNull(indexName, "No index defined for putMapping()");
 		Assert.notNull(type, "No type defined for putMapping()");
-		Map mappings = null;
-		try {
-			mappings = client.admin().indices().getMappings(new GetMappingsRequest().indices(indexName).types(type))
-					.actionGet().getMappings().get(indexName).get(type).getSourceAsMap();
-		} catch (Exception e) {
-			throw new ElasticsearchException(
-					"Error while getting mapping for indexName : " + indexName + " type : " + type + " " + e.getMessage());
-		}
+		Map mappings = client.requestGetMappings(indexName, type);
 		return mappings;
 	}
 
@@ -777,12 +780,12 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz) {
 		SearchResponse response = doScroll(prepareScroll(searchQuery, scrollTimeInMillis, clazz), searchQuery);
-		return resultsMapper.mapResults(response, clazz, null);
+		return resultsMapper.mapResults(response, clazz, Pageable.unpaged());
 	}
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz) {
 		SearchResponse response = doScroll(prepareScroll(criteriaQuery, scrollTimeInMillis, clazz), criteriaQuery);
-		return resultsMapper.mapResults(response, clazz, null);
+		return resultsMapper.mapResults(response, clazz, Pageable.unpaged());
 	}
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz, SearchResultMapper mapper) {
@@ -920,7 +923,9 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 	@Override
 	public boolean createIndex(String indexName, Object settings) {
 		CreateIndexRequestBuilder createIndexRequestBuilder = client.admin().indices().prepareCreate(indexName);
-		if (settings instanceof Map) {
+		if (settings instanceof String) {
+			createIndexRequestBuilder.setSettings((String) settings, XContentType.JSON);
+		} else if (settings instanceof Map) {
 			createIndexRequestBuilder.setSettings((Map) settings);
 		} else if (settings instanceof XContentBuilder) {
 			createIndexRequestBuilder.setSettings((XContentBuilder) settings);
@@ -952,7 +957,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 	@Override
 	public Map getSetting(String indexName) {
 		Assert.notNull(indexName, "No index defined for getSettings");
-		return client.admin().indices().getSettings(new GetSettingsRequest()).actionGet().getIndexToSettings().get(indexName).getAsGroups();
+		return client.requestGetSettings(indexName);
 	}
 
 	private <T> SearchRequestBuilder prepareSearch(Query query, Class<T> clazz) {
@@ -1015,7 +1020,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 				}
 				indexRequestBuilder.setSource(new BytesArray(resultsMapper.getEntityMapper().mapToString(query.getObject())), XContentType.JSON);
 			} else if (query.getSource() != null) {
-				indexRequestBuilder = client.prepareIndex(indexName, type, query.getId()).setSource(query.getSource());
+				indexRequestBuilder = client.prepareIndex(indexName, type, query.getId()).setSource(new BytesArray(query.getSource()), XContentType.JSON);
 			} else {
 				throw new ElasticsearchException(
 						"object or source is null, failed to index the document [id: " + query.getId() + "]");
