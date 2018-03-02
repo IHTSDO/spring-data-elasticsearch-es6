@@ -790,12 +790,12 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz, SearchResultMapper mapper) {
 		SearchResponse response = doScroll(prepareScroll(searchQuery, scrollTimeInMillis, clazz), searchQuery);
-		return mapper.mapResults(response, clazz, null);
+		return mapper.mapResults(response, clazz, Pageable.unpaged());
 	}
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz, SearchResultMapper mapper) {
 		SearchResponse response = doScroll(prepareScroll(criteriaQuery, scrollTimeInMillis, clazz), criteriaQuery);
-		return mapper.mapResults(response, clazz, null);
+		return mapper.mapResults(response, clazz, Pageable.unpaged());
 	}
 
 	public <T> Page<T> continueScroll(@Nullable String scrollId, long scrollTimeInMillis, Class<T> clazz) {
