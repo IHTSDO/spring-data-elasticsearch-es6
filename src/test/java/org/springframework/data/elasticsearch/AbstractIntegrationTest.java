@@ -6,6 +6,7 @@ import pl.allegro.tech.embeddedelasticsearch.EmbeddedElastic;
 import pl.allegro.tech.embeddedelasticsearch.PopularProperties;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class AbstractIntegrationTest {
 
@@ -17,6 +18,7 @@ public class AbstractIntegrationTest {
 	public static void setup() throws IOException, InterruptedException {
 		embeddedElastic = EmbeddedElastic.builder()
 				.withElasticVersion(ELASTIC_SEARCH_VERSION)
+				.withStartTimeout(30, TimeUnit.SECONDS)
 				.withSetting(PopularProperties.CLUSTER_NAME, "integration-test-cluster")
 				.withSetting(PopularProperties.HTTP_PORT, 9931)
 				.build()
