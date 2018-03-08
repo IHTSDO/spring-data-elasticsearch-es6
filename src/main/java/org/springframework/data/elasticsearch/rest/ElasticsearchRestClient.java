@@ -1,30 +1,22 @@
 package org.springframework.data.elasticsearch.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.BasicHttpEntity;
 import org.elasticsearch.action.*;
-import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.close.CloseIndexAction;
 import org.elasticsearch.action.admin.indices.close.CloseIndexRequest;
 import org.elasticsearch.action.admin.indices.close.CloseIndexResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexAction;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexAction;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsAction;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsAction;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingAction;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.open.OpenIndexAction;
 import org.elasticsearch.action.admin.indices.open.OpenIndexRequest;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
@@ -41,6 +33,7 @@ import org.elasticsearch.action.index.IndexAction;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.*;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.action.update.UpdateAction;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -48,24 +41,19 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.support.AbstractClient;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
-import org.elasticsearch.common.io.Streams;
+import org.elasticsearch.common.io.stream.InputStreamStreamInput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.ElasticsearchException;
+import org.springframework.data.elasticsearch.rest.response.RestCreateIndexResponse;
+import org.springframework.data.elasticsearch.rest.response.RestCreateIndexResponsePoJo;
 import org.springframework.data.elasticsearch.rest.response.RestPutMappingResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.elasticsearch.node.Node.NODE_NAME_SETTING;
 
@@ -130,25 +118,37 @@ public class ElasticsearchRestClient extends AbstractClient {
 			} else if (action instanceof CreateIndexAction) {
 				// Create Index API
 				CreateIndexRequest actionRequest = (CreateIndexRequest) request;
-				CreateIndexResponse actionResponse = client.indices().create(actionRequest);
-				actionListener.onResponse((Response) actionResponse);
+				BasicHttpEntity jsonEntity = getJsonHttpEntity("{\"settings\":" + objectMapper.writeValueAsString(actionRequest.settings().getAsMap()) + "}}");
+				org.elasticsearch.client.Response response = client.getLowLevelClient().performRequest("PUT", "/" + actionRequest.index(), Collections.emptyMap(), jsonEntity);
+				boolean success = isSuccess(response);
+				RestCreateIndexResponsePoJo responsePoJo = objectMapper.readValue(response.getEntity().getContent(), RestCreateIndexResponsePoJo.class);
+				actionListener.onResponse((Response) new RestCreateIndexResponse(responsePoJo));
 
 			} else if (action instanceof DeleteIndexAction) {
 				// Delete Index API
 				DeleteIndexRequest actionRequest = (DeleteIndexRequest) request;
-				DeleteIndexResponse actionResponse = client.indices().delete(actionRequest);
+				org.elasticsearch.client.Response response = client.getLowLevelClient().performRequest("DELETE", "/" + actionRequest.indices()[0]);
+				boolean success = isSuccess(response);
+				DeleteIndexResponse actionResponse = (DeleteIndexResponse) action.newResponse();
+				readSuccessResponse(success, actionResponse);
 				actionListener.onResponse((Response) actionResponse);
 
 			} else if (action instanceof OpenIndexAction) {
 				// Open Index API
 				OpenIndexRequest actionRequest = (OpenIndexRequest) request;
-				OpenIndexResponse actionResponse = client.indices().open(actionRequest);
+				org.elasticsearch.client.Response response = client.getLowLevelClient().performRequest("POST", "/" + actionRequest.indices()[0] + "/_open");
+				boolean success = isSuccess(response);
+				OpenIndexResponse actionResponse = (OpenIndexResponse) action.newResponse();
+				readSuccessResponse(success, actionResponse);
 				actionListener.onResponse((Response) actionResponse);
 
 			} else if (action instanceof CloseIndexAction) {
 				// Close Index API
 				CloseIndexRequest actionRequest = (CloseIndexRequest) request;
-				CloseIndexResponse actionResponse = client.indices().close(actionRequest);
+				org.elasticsearch.client.Response response = client.getLowLevelClient().performRequest("POST", "/" + actionRequest.indices()[0] + "/_close");
+				boolean success = isSuccess(response);
+				CloseIndexResponse actionResponse = (CloseIndexResponse) action.newResponse();
+				readSuccessResponse(success, actionResponse);
 				actionListener.onResponse((Response) actionResponse);
 
 			} else if (action instanceof IndexAction) {
@@ -163,11 +163,12 @@ public class ElasticsearchRestClient extends AbstractClient {
 				GetResponse actionResponse = client.get(actionRequest);
 				actionListener.onResponse((Response) actionResponse);
 
-			} else if (action instanceof MultiGetAction) {
+//			} else if (action instanceof MultiGetAction) {
+				// Not supported in the Elasticsearch RestHighLevelClient version 6.0.1
 				// MultiGet API
-				MultiGetRequest actionRequest = (MultiGetRequest) request;
-				MultiGetResponse actionResponse = client.multiGet(actionRequest);
-				actionListener.onResponse((Response) actionResponse);
+//				MultiGetRequest actionRequest = (MultiGetRequest) request;
+//				MultiGetResponse actionResponse = client.multiGet(actionRequest);
+//				actionListener.onResponse((Response) actionResponse);
 
 			} else if (action instanceof DeleteAction) {
 				// Delete API
@@ -212,6 +213,11 @@ public class ElasticsearchRestClient extends AbstractClient {
 		} catch (IOException e) {
 			actionListener.onFailure(e);
 		}
+	}
+
+	private void readSuccessResponse(boolean success, AcknowledgedResponse actionResponse) throws IOException {
+		byte successByte = (byte) (success ? 1 : 0);
+		actionResponse.readFrom(new InputStreamStreamInput(new ByteArrayInputStream(new byte[] {successByte})));
 	}
 
 	public Map requestGetMappings(String indexName, String type) {

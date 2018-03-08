@@ -20,7 +20,7 @@
     <properties>
 
         <!-- Keep this in sync with AbstractIntegrationTest.ELASTIC_SEARCH_VERSION -->
-        <elasticsearch>6.2.0</elasticsearch>
+        <elasticsearch>6.0.1</elasticsearch>
 
         <commonscollections>3.2.1</commonscollections>
         <commonslang>2.6</commonslang>

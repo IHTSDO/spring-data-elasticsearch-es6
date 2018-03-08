@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.common.util.CollectionUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -210,6 +211,7 @@ public class SimpleElasticsearchRepositoryTests extends AbstractIntegrationTest 
 	DATAES-82
 	*/
 	@Test
+	@Ignore
 	public void shouldFindAllByIdQuery() {
 		// given
 		String documentId = randomNumeric(5);
