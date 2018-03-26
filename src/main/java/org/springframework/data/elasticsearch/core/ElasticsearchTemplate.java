@@ -738,6 +738,13 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 			requestBuilder.setSize(query.getPageable().getPageSize());
 		}
 
+		if (query.getSort() != null) {
+			for (Sort.Order order : query.getSort()) {
+				requestBuilder.addSort(order.getProperty(),
+						order.getDirection() == Sort.Direction.DESC ? SortOrder.DESC : SortOrder.ASC);
+			}
+		}
+
 		if (!isEmpty(query.getFields())) {
 			requestBuilder.setFetchSource(toArray(query.getFields()), null);
 		}
@@ -773,6 +780,12 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 
 		if (searchQuery.getFilter() != null) {
 			requestBuilder.setPostFilter(searchQuery.getFilter());
+		}
+
+		if (!isEmpty(searchQuery.getElasticsearchSorts())) {
+			for (SortBuilder sort : searchQuery.getElasticsearchSorts()) {
+				requestBuilder.addSort(sort);
+			}
 		}
 
 		return getSearchResponse(requestBuilder.setQuery(searchQuery.getQuery()).execute());

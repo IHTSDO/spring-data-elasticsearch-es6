@@ -42,10 +42,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.elasticsearch.AbstractIntegrationTest;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -461,6 +458,51 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 				.withSort(new FieldSortBuilder("message").order(SortOrder.ASC)).build();
 		// when
 		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class);
+		// then
+		assertThat(sampleEntities.getTotalElements(), equalTo(3L));
+		assertThat(sampleEntities.getContent().get(0).getRate(), is(sampleEntity2.getRate()));
+		assertThat(sampleEntities.getContent().get(1).getMessage(), is(sampleEntity1.getMessage()));
+	}
+
+	@Test
+	public void shouldSortResultsGivenMultipleSortCriteriaUsingStream() {
+		// given
+		List<IndexQuery> indexQueries = new ArrayList<>();
+		// first document
+		String documentId = randomNumeric(5);
+		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
+				.message("abc")
+				.rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		// second document
+		String documentId2 = randomNumeric(5);
+		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
+				.message("xyz")
+				.rate(5)
+				.version(System.currentTimeMillis()).build();
+
+		// third document
+		String documentId3 = randomNumeric(5);
+		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
+				.message("xyz")
+				.rate(15)
+				.version(System.currentTimeMillis()).build();
+
+		indexQueries = getIndexQueries(Arrays.asList(sampleEntity1, sampleEntity2, sampleEntity3));
+
+		elasticsearchTemplate.bulkIndex(indexQueries);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery())
+				.withSort(new FieldSortBuilder("rate").order(SortOrder.ASC))
+				.withSort(new FieldSortBuilder("message").order(SortOrder.ASC)).build();
+		// when
+		List<SampleEntity> sampleEntityList = new ArrayList<>();
+		try (CloseableIterator<SampleEntity> stream = elasticsearchTemplate.stream(searchQuery, SampleEntity.class)) {
+			stream.forEachRemaining(sampleEntityList::add);
+		}
+		Page<SampleEntity> sampleEntities = new PageImpl<>(sampleEntityList, PageRequest.of(0, 10), sampleEntityList.size());
 		// then
 		assertThat(sampleEntities.getTotalElements(), equalTo(3L));
 		assertThat(sampleEntities.getContent().get(0).getRate(), is(sampleEntity2.getRate()));
