@@ -67,7 +67,7 @@ public class EnableElasticsearchRepositoriesTests extends AbstractIntegrationTes
 
 		@Bean
 		public ElasticsearchOperations elasticsearchTemplate() throws NodeValidationException, IOException, InterruptedException {
-			ElasticsearchRestClient client = new ElasticsearchRestClient(new HashMap<>(), true, "http://localhost:9931");
+			ElasticsearchRestClient client = new ElasticsearchRestClient(new HashMap<>(), "http://localhost:9931");
 			return new ElasticsearchTemplate(client);
 		}
 	}

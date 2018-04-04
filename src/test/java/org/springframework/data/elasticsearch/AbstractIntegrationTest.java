@@ -20,6 +20,7 @@ public class AbstractIntegrationTest {
 				.withElasticVersion(ELASTIC_SEARCH_VERSION)
 				.withStartTimeout(30, TimeUnit.SECONDS)
 				.withSetting(PopularProperties.CLUSTER_NAME, "integration-test-cluster")
+				.withSetting("rest.action.multi.allow_explicit_index", "false")
 				.withSetting(PopularProperties.HTTP_PORT, 9931)
 				.build()
 				.start();

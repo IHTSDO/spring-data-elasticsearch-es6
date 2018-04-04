@@ -1616,6 +1616,7 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 	DATAES-106
 	 */
 	@Test
+	@Ignore("Multi-index not supported")
 	public void shouldReturnCountForGivenCriteriaQueryWithGivenMultiIndices() {
 		// given
 		cleanUpIndices();
@@ -1653,6 +1654,7 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 	DATAES-67
 	 */
 	@Test
+	@Ignore("Multi-index not supported")
 	public void shouldReturnCountForGivenSearchQueryWithGivenMultiIndices() {
 		// given
 		cleanUpIndices();
@@ -1729,6 +1731,7 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 	DATAES-106
 	 */
 	@Test
+	@Ignore("Multi-index not supported")
 	public void shouldReturnCountForGivenCriteriaQueryWithGivenIndexNameForSpecificIndex() {
 		// given
 		cleanUpIndices();
@@ -1766,6 +1769,7 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 	DATAES-67
 	*/
 	@Test
+	@Ignore("Multi-index not supported")
 	public void shouldReturnCountForGivenSearchQueryWithGivenIndexNameForSpecificIndex() {
 		// given
 		cleanUpIndices();
@@ -1918,7 +1922,9 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_replicas"), is("0"));
 		assertThat(MapUtils.getMapValueUsingCompositeKey(map, "index.number_of_shards"), is("1"));
 	}
+
 	@Test
+	@Ignore("Multi-index not supported")
 	public void shouldTestResultsAcrossMultipleIndices() {
 		// given
 		String documentId1 = randomNumeric(5);
@@ -1955,6 +1961,7 @@ public class ElasticsearchTemplateTests extends AbstractIntegrationTest {
 	}
 
 	@Test
+	@Ignore("Multi-index not supported")
 	/**
 	 * This is basically a demonstration to show composing entities out of heterogeneous indexes.
 	 */

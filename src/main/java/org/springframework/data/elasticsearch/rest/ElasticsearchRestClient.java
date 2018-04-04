@@ -24,11 +24,14 @@ import org.elasticsearch.action.admin.indices.refresh.RefreshAction;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.bulk.BulkAction;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteAction;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.*;
+import org.elasticsearch.action.get.GetAction;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexAction;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
@@ -47,13 +50,17 @@ import org.elasticsearch.threadpool.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.ElasticsearchException;
+import org.springframework.data.elasticsearch.rest.request.SingleIndexBulkRequestBuilder;
 import org.springframework.data.elasticsearch.rest.response.RestCreateIndexResponse;
 import org.springframework.data.elasticsearch.rest.response.RestCreateIndexResponsePoJo;
 import org.springframework.data.elasticsearch.rest.response.RestPutMappingResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.elasticsearch.node.Node.NODE_NAME_SETTING;
 
@@ -68,19 +75,14 @@ public class ElasticsearchRestClient extends AbstractClient {
 	private final ObjectMapper objectMapper;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public ElasticsearchRestClient(Map<String, String> settings, boolean forceIndexNameInUrlOfEsRequests, RestClientBuilder builder) {
+	public ElasticsearchRestClient(Map<String, String> settings, RestClientBuilder builder) {
 		super(buildSettings(settings), new ThreadPool(buildSettings(settings)));
 		client = new ESRestHighLevelClient(builder);
-		client.setForceIndexNameInUrlOfEsRequests(forceIndexNameInUrlOfEsRequests);
 		objectMapper = new ObjectMapper();
 	}
 
-	public ElasticsearchRestClient(Map<String, String> settings, boolean forceIndexNameInUrlOfEsRequests, String... hosts) {
-		this(settings, forceIndexNameInUrlOfEsRequests, RestClient.builder(getHttpHosts(hosts)));
-	}
-
 	public ElasticsearchRestClient(Map<String, String> settings, String... hosts) {
-		this(settings, false, RestClient.builder(getHttpHosts(hosts)));
+		this(settings, RestClient.builder(getHttpHosts(hosts)));
 	}
 
 	private static HttpHost[] getHttpHosts(String[] hosts) {
@@ -89,6 +91,11 @@ public class ElasticsearchRestClient extends AbstractClient {
 			httpHosts.add(HttpHost.create(host));
 		}
 		return httpHosts.toArray(new HttpHost[]{});
+	}
+
+	@Override
+	public BulkRequestBuilder prepareBulk() {
+		return new SingleIndexBulkRequestBuilder(this, BulkAction.INSTANCE);
 	}
 
 	@Override
