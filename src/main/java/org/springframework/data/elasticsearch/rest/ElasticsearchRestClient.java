@@ -39,7 +39,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.support.AbstractClient;
 import org.elasticsearch.common.io.stream.InputStreamStreamInput;
 import org.elasticsearch.common.settings.Settings;
@@ -64,18 +64,31 @@ import static org.elasticsearch.node.Node.NODE_NAME_SETTING;
  */
 public class ElasticsearchRestClient extends AbstractClient {
 
-	private final RestHighLevelClient client;
+	private final ESRestHighLevelClient client;
 	private final ObjectMapper objectMapper;
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public ElasticsearchRestClient(Map<String, String> settings, String... hosts) {
+	public ElasticsearchRestClient(Map<String, String> settings, boolean forceIndexNameInUrlOfEsRequests, RestClientBuilder builder) {
 		super(buildSettings(settings), new ThreadPool(buildSettings(settings)));
+		client = new ESRestHighLevelClient(builder);
+		client.setForceIndexNameInUrlOfEsRequests(forceIndexNameInUrlOfEsRequests);
+		objectMapper = new ObjectMapper();
+	}
+
+	public ElasticsearchRestClient(Map<String, String> settings, boolean forceIndexNameInUrlOfEsRequests, String... hosts) {
+		this(settings, forceIndexNameInUrlOfEsRequests, RestClient.builder(getHttpHosts(hosts)));
+	}
+
+	public ElasticsearchRestClient(Map<String, String> settings, String... hosts) {
+		this(settings, false, RestClient.builder(getHttpHosts(hosts)));
+	}
+
+	private static HttpHost[] getHttpHosts(String[] hosts) {
 		List<HttpHost> httpHosts = new ArrayList<>();
 		for (String host : hosts) {
 			httpHosts.add(HttpHost.create(host));
 		}
-		client = new RestHighLevelClient(RestClient.builder(httpHosts.toArray(new HttpHost[]{})));
-		objectMapper = new ObjectMapper();
+		return httpHosts.toArray(new HttpHost[]{});
 	}
 
 	@Override
