@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Fork of Spring Data Elasticsearch project to add up to date REST client support -->
-    <groupId>org.snomed.oft</groupId>
+    <groupId>org.snomed.otf</groupId>
     <artifactId>spring-data-elasticsearch</artifactId>
     <version>4.0.1-SNAPSHOT</version>
 
