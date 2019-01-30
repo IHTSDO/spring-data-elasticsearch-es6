@@ -245,6 +245,25 @@ public interface ElasticsearchOperations {
 	<T> CloseableIterator<T> stream(SearchQuery query, Class<T> clazz);
 
 	/**
+	 * Executes the given {@link SearchQuery} against elasticsearch and return result as {@link CloseableIterator}.
+	 * This uses stateless pagination with search-after.
+	 * A field with one unique value per document should be used as the tiebreaker of the sort specification.
+	 * Otherwise the sort order for documents that have the same sort values would be undefined and could lead to missing or duplicate results.
+	 * See Elasticsearch documentation on Search After for more information.
+	 * <p>
+	 * Returns a {@link CloseableIterator} that wraps search after pagination.
+	 *
+	 * @param <T> element return type
+	 * @param query
+	 * @param clazz
+	 * @return
+	 * @since 4.1.0
+	 */
+	<T> CloseableIterator<T> statelessStream(SearchQuery query, Class<T> clazz);
+
+	<T> CloseableIterator<T> statelessStream(SearchQuery query, Class<T> clazz, SearchResultMapper mapper);
+
+	/**
 	 * Executes the given {@link SearchQuery} against elasticsearch and return result as {@link CloseableIterator} using custom mapper.
 	 * <p>
 	 * Returns a {@link CloseableIterator} that wraps an Elasticsearch scroll context that needs to be closed in case of error.

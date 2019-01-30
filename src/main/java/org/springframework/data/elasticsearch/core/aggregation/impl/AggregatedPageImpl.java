@@ -35,6 +35,7 @@ public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage
 	private Aggregations aggregations;
 	private Map<String, Aggregation> mapOfAggregations = new HashMap<>();
     private String scrollId;
+	private Object[] searchAfter;
 
 	public AggregatedPageImpl(List<T> content) {
 		super(content);
@@ -64,10 +65,11 @@ public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage
 		}
 	}
 
-	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, Aggregations aggregations, String scrollId) {
+	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, Aggregations aggregations, String scrollId, Object[] searchAfter) {
 		super(content, pageable, total);
 		this.aggregations = aggregations;
 		this.scrollId = scrollId;
+		this.searchAfter = searchAfter;
 		if (aggregations != null) {
 			for (Aggregation aggregation : aggregations) {
 				mapOfAggregations.put(aggregation.getName(), aggregation);
@@ -93,5 +95,10 @@ public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage
 	@Override
 	public String getScrollId() {
 		return scrollId;
+	}
+
+	@Override
+	public Object[] getSearchAfter() {
+		return searchAfter;
 	}
 }

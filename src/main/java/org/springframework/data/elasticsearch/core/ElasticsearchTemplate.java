@@ -21,9 +21,7 @@ import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.mapping.get.GetMappingsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequestBuilder;
-import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -36,8 +34,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Nullable;
@@ -427,6 +423,77 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 				throw new UnsupportedOperationException("remove");
 			}
 		};
+	}
+
+	@Override
+	public <T> CloseableIterator<T> statelessStream(SearchQuery query, Class<T> clazz) {
+		return statelessStream(query, clazz, resultsMapper);
+	}
+
+	@Override
+	public <T> CloseableIterator<T> statelessStream(SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
+		Assert.notNull(query.getSort(), "No sort defined for Query. Stateless stream uses search-after which relies on sorting.");
+		AggregatedPage<T> page = mapper.mapResults(doSearch(prepareSearch(query, clazz), query), clazz, query.getPageable());
+		return doStatelessStream(page, clazz, mapper, query);
+	}
+
+	private <T> CloseableIterator<T> doStatelessStream(final AggregatedPage<T> page, final Class<T> clazz, final SearchResultMapper mapper, SearchQuery query) {
+		return new CloseableIterator<T>() {
+
+			/** As we couldn't retrieve single result with scroll, store current hits. */
+			private volatile Iterator<T> currentHits = page.iterator();
+
+			/** The scroll id. */
+			private volatile Object[] searchAfter = page.getSearchAfter();
+
+			/** If stream is finished (ie: cluster returns no results. */
+			private volatile boolean finished = !currentHits.hasNext();
+
+			@Override
+			public void close() {
+				currentHits = null;
+				searchAfter = null;
+			}
+
+			@Override
+			public boolean hasNext() {
+				// Test if stream is finished
+				if (finished) {
+					return false;
+				}
+				// Test if it remains hits
+				if (currentHits == null || !currentHits.hasNext()) {
+					// Do a new request
+					final AggregatedPage<T> page = doSearchAfter(searchAfter, query, clazz, mapper);
+					// Save hits and scroll id
+					currentHits = page.iterator();
+					finished = !currentHits.hasNext();
+					searchAfter = page.getSearchAfter();
+				}
+				return currentHits.hasNext();
+			}
+
+			@Override
+			public T next() {
+				if (hasNext()) {
+					return currentHits.next();
+				}
+				throw new NoSuchElementException();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException("remove");
+			}
+		};
+	}
+
+	private <T> AggregatedPage<T> doSearchAfter(Object[] searchAfter, SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
+		SearchRequestBuilder searchRequest = prepareSearch(query, clazz);
+		searchRequest.searchAfter(searchAfter);
+		System.out.println("searchAfter: " + Arrays.toString(searchAfter));
+		SearchResponse response = doSearch(searchRequest, query);
+		return mapper.mapResults(response, clazz, query.getPageable());
 	}
 
 	@Override

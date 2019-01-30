@@ -78,6 +78,7 @@ public class DefaultResultMapper extends AbstractResultMapper {
 	public <T> AggregatedPage<T> mapResults(SearchResponse response, Class<T> clazz, Pageable pageable) {
 		long totalHits = response.getHits().totalHits;
 		List<T> results = new ArrayList<>();
+		SearchHit lastHit = null;
 		for (SearchHit hit : response.getHits()) {
 			if (hit != null) {
 				T result = null;
@@ -89,10 +90,11 @@ public class DefaultResultMapper extends AbstractResultMapper {
 				setPersistentEntityId(result, hit.getId(), clazz);
 				populateScriptFields(result, hit);
 				results.add(result);
+				lastHit = hit;
 			}
 		}
-
-		return new AggregatedPageImpl<T>(results, pageable, totalHits, response.getAggregations(), response.getScrollId());
+		Object[] searchAfter = lastHit != null ? lastHit.getSortValues() : null;
+		return new AggregatedPageImpl<T>(results, pageable, totalHits, response.getAggregations(), response.getScrollId(), searchAfter);
 	}
 
 	private <T> void populateScriptFields(T result, SearchHit hit) {
