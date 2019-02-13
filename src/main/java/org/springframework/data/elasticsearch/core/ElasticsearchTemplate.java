@@ -1050,6 +1050,8 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		Assert.notNull(query.getTypes(), "No type defined for Query");
 
 		int startRecord = 0;
+		Object[] searchAfter = null;
+		
 		SearchRequestBuilder searchRequestBuilder = client.prepareSearch(toArray(query.getIndices()))
 				.setSearchType(query.getSearchType()).setTypes(toArray(query.getTypes()));
 
@@ -1059,10 +1061,22 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		}
 
 		if (query.getPageable().isPaged()) {
-			startRecord = query.getPageable().getPageNumber() * query.getPageable().getPageSize();
-			searchRequestBuilder.setSize(query.getPageable().getPageSize());
+			//Are we working with page numbers or searchAfter?
+			Pageable pageable = query.getPageable();
+			if (pageable instanceof SearchAfterPageRequest) {
+				String searchAfterToken = ((SearchAfterPageRequest)pageable).getSearchAfter();
+				searchAfter = SearchAfterHelper.fromSearchAfterToken(searchAfterToken);
+			} else {
+				startRecord = pageable.getPageNumber() * pageable.getPageSize();
+			}
+			searchRequestBuilder.setSize(pageable.getPageSize());
 		}
-		searchRequestBuilder.setFrom(startRecord);
+		
+		if (searchAfter == null) {
+			searchRequestBuilder.setFrom(startRecord);
+		} else {
+			searchRequestBuilder.searchAfter(searchAfter);
+		}
 
 		if (!query.getFields().isEmpty()) {
 			searchRequestBuilder.setFetchSource(toArray(query.getFields()),null);
