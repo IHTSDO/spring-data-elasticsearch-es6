@@ -94,6 +94,10 @@ public class DefaultResultMapper extends AbstractResultMapper {
 			}
 		}
 		Object[] searchAfter = lastHit != null ? lastHit.getSortValues() : null;
+		if (pageable instanceof SearchAfterPageRequest) {
+			String searchAfterToken = SearchAfterHelper.toSearchAfterToken(searchAfter);
+			((SearchAfterPageRequest)pageable).setSearchAfterToken(searchAfterToken);
+		}
 		return new AggregatedPageImpl<T>(results, pageable, totalHits, response.getAggregations(), response.getScrollId(), searchAfter);
 	}
 

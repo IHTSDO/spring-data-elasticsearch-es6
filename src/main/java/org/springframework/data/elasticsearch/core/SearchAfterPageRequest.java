@@ -10,11 +10,13 @@ public class SearchAfterPageRequest extends AbstractPageRequest {
 	
 	private static final long serialVersionUID = -6007427904873239857L;
 	private final Sort sort;
-	private final String searchAfter;
 	
-	SearchAfterPageRequest (String searchAfter, int limit, Sort sort) {
+	//Search after is not final, will be modified when the request is satisfied
+	private String searchAfterToken;
+	
+	SearchAfterPageRequest (String searchAfterToken, int limit, Sort sort) {
 		super (0, limit);
-		this.searchAfter = searchAfter;
+		this.searchAfterToken = searchAfterToken;
 		this.sort = sort;
 	}
 
@@ -62,8 +64,12 @@ public class SearchAfterPageRequest extends AbstractPageRequest {
 		return sort;
 	}
 	
-	public String getSearchAfter() {
-		return searchAfter;
+	public String getSearchAfterToken() {
+		return searchAfterToken;
+	}
+	
+	public void setSearchAfterToken(String searchAfterToken) {
+		this.searchAfterToken = searchAfterToken;
 	}
 
 	/*
@@ -124,7 +130,7 @@ public class SearchAfterPageRequest extends AbstractPageRequest {
 	 */
 	@Override
 	public int hashCode() {
-		return 31 * searchAfter.hashCode() + sort.hashCode();
+		return 31 * searchAfterToken.hashCode() + sort.hashCode();
 	}
 
 	/*
@@ -133,6 +139,6 @@ public class SearchAfterPageRequest extends AbstractPageRequest {
 	 */
 	@Override
 	public String toString() {
-		return String.format("Search After Page request [searchAfter: %s, size %d, sort: %s]", searchAfter, getPageSize(), sort);
+		return String.format("Search After Page request [searchAfter: %s, size %d, sort: %s]", searchAfterToken, getPageSize(), sort);
 	}
 }

@@ -1064,8 +1064,12 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 			//Are we working with page numbers or searchAfter?
 			Pageable pageable = query.getPageable();
 			if (pageable instanceof SearchAfterPageRequest) {
-				String searchAfterToken = ((SearchAfterPageRequest)pageable).getSearchAfter();
+				String searchAfterToken = ((SearchAfterPageRequest)pageable).getSearchAfterToken();
 				searchAfter = SearchAfterHelper.fromSearchAfterToken(searchAfterToken);
+				//If we're on our first request, then just set a start from
+				if (searchAfter == null) {
+					startRecord = 0;
+				}
 			} else {
 				startRecord = pageable.getPageNumber() * pageable.getPageSize();
 			}
