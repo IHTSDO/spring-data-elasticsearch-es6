@@ -93,6 +93,7 @@ public class DefaultResultMapper extends AbstractResultMapper {
 				lastHit = hit;
 			}
 		}
+		
 		Object[] searchAfter = lastHit != null ? lastHit.getSortValues() : null;
 		if (pageable instanceof SearchAfterPageRequest) {
 			String searchAfterToken = SearchAfterHelper.toSearchAfterToken(searchAfter);
