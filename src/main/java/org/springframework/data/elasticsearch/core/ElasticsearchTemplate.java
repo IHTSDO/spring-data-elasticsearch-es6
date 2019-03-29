@@ -491,7 +491,6 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 	private <T> AggregatedPage<T> doSearchAfter(Object[] searchAfter, SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
 		SearchRequestBuilder searchRequest = prepareSearch(query, clazz);
 		searchRequest.searchAfter(searchAfter);
-		System.out.println("searchAfter: " + Arrays.toString(searchAfter));
 		SearchResponse response = doSearch(searchRequest, query);
 		return mapper.mapResults(response, clazz, query.getPageable());
 	}
@@ -1049,9 +1048,9 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		Assert.notNull(query.getIndices(), "No index defined for Query");
 		Assert.notNull(query.getTypes(), "No type defined for Query");
 
-		int startRecord = 0;
+		int startRecordOffset = 0;
 		Object[] searchAfter = null;
-		
+
 		SearchRequestBuilder searchRequestBuilder = client.prepareSearch(toArray(query.getIndices()))
 				.setSearchType(query.getSearchType()).setTypes(toArray(query.getTypes()));
 
@@ -1061,25 +1060,19 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		}
 
 		if (query.getPageable().isPaged()) {
-			//Are we working with page numbers or searchAfter?
 			Pageable pageable = query.getPageable();
 			if (pageable instanceof SearchAfterPageRequest) {
-				String searchAfterToken = ((SearchAfterPageRequest)pageable).getSearchAfterToken();
-				searchAfter = SearchAfterHelper.fromSearchAfterToken(searchAfterToken);
-				//If we're on our first request, then just set a start from
-				if (searchAfter == null) {
-					startRecord = 0;
-				}
+				searchAfter = ((SearchAfterPageRequest)pageable).getSearchAfter();
 			} else {
-				startRecord = pageable.getPageNumber() * pageable.getPageSize();
+				startRecordOffset = pageable.getPageNumber() * pageable.getPageSize();
 			}
 			searchRequestBuilder.setSize(pageable.getPageSize());
 		}
-		
-		if (searchAfter == null) {
-			searchRequestBuilder.setFrom(startRecord);
-		} else {
+
+		if (searchAfter != null) {
 			searchRequestBuilder.searchAfter(searchAfter);
+		} else {
+			searchRequestBuilder.setFrom(startRecordOffset);
 		}
 
 		if (!query.getFields().isEmpty()) {

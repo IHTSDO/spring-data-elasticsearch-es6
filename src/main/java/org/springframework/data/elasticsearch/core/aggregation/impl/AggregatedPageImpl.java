@@ -18,7 +18,9 @@ package org.springframework.data.elasticsearch.core.aggregation.impl;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.SearchAfterPage;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 
 import java.util.HashMap;
@@ -30,7 +32,7 @@ import java.util.Map;
  * @author Artur Konczak
  * @author Mohsin Husen
  */
-public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage<T> {
+public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage<T>, SearchAfterPage<T> {
 
 	private Aggregations aggregations;
 	private Map<String, Aggregation> mapOfAggregations = new HashMap<>();
@@ -46,13 +48,9 @@ public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage
 		this.scrollId = scrollId;
 	}
 
-	public AggregatedPageImpl(List<T> content, Pageable pageable, long total) {
+	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, Object[] searchAfter) {
 		super(content, pageable, total);
-	}
-
-	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, String scrollId) {
-		super(content, pageable, total);
-		this.scrollId = scrollId;
+		this.searchAfter = searchAfter;
 	}
 
 	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, Aggregations aggregations) {
