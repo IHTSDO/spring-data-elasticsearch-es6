@@ -46,4 +46,9 @@ public class StringQuery extends AbstractQuery {
 	public String getSource() {
 		return source;
 	}
+	
+	@Override
+	public String toString() {
+		return source;
+	}
 }

@@ -79,4 +79,9 @@ public class CriteriaQuery extends AbstractQuery {
 	public Criteria getCriteria() {
 		return this.criteria;
 	}
+	
+	@Override
+	public String toString() {
+		return this.criteria.toString();
+	}
 }

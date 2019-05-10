@@ -259,14 +259,14 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 	@Override
 	public <T> T queryForObject(CriteriaQuery query, Class<T> clazz) {
 		Page<T> page = queryForPage(query, clazz);
-		Assert.isTrue(page.getTotalElements() < 2, "Expected 1 but found " + page.getTotalElements() + " results");
+		Assert.isTrue(page.getTotalElements() < 2, "Expected 1 but found " + page.getTotalElements() + " results of type: " + clazz.getSimpleName());
 		return page.getTotalElements() > 0 ? page.getContent().get(0) : null;
 	}
 
 	@Override
 	public <T> T queryForObject(StringQuery query, Class<T> clazz) {
 		Page<T> page = queryForPage(query, clazz);
-		Assert.isTrue(page.getTotalElements() < 2, "Expected 1 but found " + page.getTotalElements() + " results");
+		Assert.isTrue(page.getTotalElements() < 2, "Expected 1 but found " + page.getTotalElements() + " results of type: " + clazz.getSimpleName() + " using query: " + query);
 		return page.getTotalElements() > 0 ? page.getContent().get(0) : null;
 	}
 
