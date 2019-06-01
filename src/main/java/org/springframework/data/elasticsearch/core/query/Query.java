@@ -104,6 +104,8 @@ public interface Query {
 	 */
 	List<String> getFields();
 
+	List<String> getStoredFields();
+
 	/**
 	 * Add source filter to be added as part of search request
 	 *

@@ -38,6 +38,7 @@ abstract class AbstractQuery implements Query {
 	protected List<String> indices = new ArrayList<>();
 	protected List<String> types = new ArrayList<>();
 	protected List<String> fields = new ArrayList<>();
+	protected List<String> storedFields = new ArrayList<>();
 	protected SourceFilter sourceFilter;
 	protected float minScore;
 	protected Collection<String> ids;
@@ -68,9 +69,17 @@ abstract class AbstractQuery implements Query {
 		addAll(this.fields, fields);
 	}
 
+	public void addStoredFields(String... storedFields) {
+		addAll(this.storedFields, storedFields);
+	}
+
 	@Override
 	public List<String> getFields() {
 		return fields;
+	}
+
+	public List<String> getStoredFields() {
+		return storedFields;
 	}
 
 	@Override

@@ -814,6 +814,9 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 		if (!isEmpty(query.getFields())) {
 			requestBuilder.setFetchSource(toArray(query.getFields()), null);
 		}
+		if (!isEmpty(query.getStoredFields())) {
+			requestBuilder.storedFields(toArray(query.getStoredFields()));
+		}
 		return requestBuilder;
 	}
 
@@ -1077,6 +1080,10 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 
 		if (!query.getFields().isEmpty()) {
 			searchRequestBuilder.setFetchSource(toArray(query.getFields()),null);
+		}
+
+		if (!query.getStoredFields().isEmpty()) {
+			searchRequestBuilder.storedFields(toArray(query.getStoredFields()));
 		}
 
 		if (query.getSort() != null) {

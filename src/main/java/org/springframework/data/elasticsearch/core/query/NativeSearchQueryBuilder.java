@@ -48,6 +48,7 @@ public class NativeSearchQueryBuilder {
 	private String[] indices;
 	private String[] types;
 	private String[] fields;
+	private String[] storedFields;
 	private SourceFilter sourceFilter;
 	private List<IndexBoost> indicesBoost;
 	private float minScore;
@@ -110,6 +111,11 @@ public class NativeSearchQueryBuilder {
 		return this;
 	}
 
+	public NativeSearchQueryBuilder withStoredFields(String... storedFields) {
+		this.storedFields = storedFields;
+		return this;
+	}
+
 	public NativeSearchQueryBuilder withSourceFilter(SourceFilter sourceFilter) {
 				this.sourceFilter = sourceFilter;
 				return this;
@@ -149,6 +155,10 @@ public class NativeSearchQueryBuilder {
 
 		if (fields != null) {
 			nativeSearchQuery.addFields(fields);
+		}
+
+		if (storedFields != null) {
+			nativeSearchQuery.addStoredFields(storedFields);
 		}
 
 		if (sourceFilter != null) {
