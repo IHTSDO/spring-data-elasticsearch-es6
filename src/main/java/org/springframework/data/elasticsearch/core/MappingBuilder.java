@@ -288,7 +288,14 @@ class MappingBuilder {
 	private static void addMultiFieldMapping(XContentBuilder builder, java.lang.reflect.Field field,
 											 MultiField annotation, boolean nestedOrObjectField) throws IOException {
 		builder.startObject(field.getName());
-		builder.field(FIELD_TYPE, annotation.mainField().type());
+		Field mainField = annotation.mainField();
+		builder.field(FIELD_TYPE, mainField.type());
+		if (isNotBlank(mainField.searchAnalyzer())) {
+			builder.field(FIELD_SEARCH_ANALYZER, mainField.searchAnalyzer());
+		}
+		if (isNotBlank(mainField.analyzer())) {
+			builder.field(FIELD_INDEX_ANALYZER, mainField.analyzer());
+		}
 		builder.startObject("fields");
 		//add standard field
 		//addSingleFieldMapping(builder, field, annotation.mainField(), nestedOrObjectField);
