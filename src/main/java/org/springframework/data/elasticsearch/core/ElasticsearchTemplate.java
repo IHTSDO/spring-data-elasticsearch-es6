@@ -382,8 +382,8 @@ public class ElasticsearchTemplate implements ElasticsearchOperations, Applicati
 			@Override
 			public void close() {
 				try {
-					// Clear scroll on cluster only in case of error (cause elasticsearch auto clear scroll when it's done)
-					if (!finished && scrollId != null && currentHits != null && currentHits.hasNext()) {
+					// Clear scroll
+					if (scrollId != null) {
 						clearScroll(scrollId);
 					}
 				} finally {
